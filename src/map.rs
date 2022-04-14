@@ -1,5 +1,5 @@
-use super::Rect;
-use rltk::{RandomNumberGenerator, Rltk, RGB};
+use super::{Player, Rect, Viewshed};
+use rltk::{Algorithm2D, BaseMap, Point, RandomNumberGenerator, Rltk, RGB};
 use specs::prelude::*;
 use std::cmp::{max, min};
 
@@ -9,11 +9,13 @@ pub enum TileType {
     Floor,
 }
 
+#[derive(Default)]
 pub struct Map {
     pub tiles: Vec<TileType>,
     pub rooms: Vec<Rect>,
     pub width: i32,
     pub height: i32,
+    pub revealed_tiles: Vec<bool>,
 }
 
 impl Map {
@@ -54,6 +56,7 @@ impl Map {
             rooms: Vec::new(),
             width: 80,
             height: 50,
+            revealed_tiles: vec![false; 80 * 50],
         };
 
         const MAX_ROOMS: i32 = 30;
@@ -97,60 +100,45 @@ impl Map {
     }
 }
 
-// /// Makes a map with solid boundaries and randomly placed walls.
-// pub fn new_map_test() -> Vec<TileType> {
-//     let mut map = vec![TileType::Floor; 80 * 50];
-//
-//     // Make the boundaries walls
-//     for x in 0..80 {
-//         map[xy_idx(x, 0)] = TileType::Wall;
-//         map[xy_idx(x, 49)] = TileType::Wall;
-//     }
-//
-//     for y in 0..50 {
-//         map[xy_idx(0, y)] = TileType::Wall;
-//         map[xy_idx(79, y)] = TileType::Wall;
-//     }
-//
-//     // Randomly add walls
-//     let mut rng = rltk::RandomNumberGenerator::new();
-//
-//     for _i in 0..400 {
-//         let x = rng.roll_dice(1, 79);
-//         let y = rng.roll_dice(1, 49);
-//         let idx = xy_idx(x, y);
-//         if idx != xy_idx(40, 25) {
-//             map[idx] = TileType::Wall;
-//         }
-//     }
-//
-//     map
-// }
+impl Algorithm2D for Map {
+    fn dimensions(&self) -> Point {
+        Point::new(self.width, self.height)
+    }
+}
+
+impl BaseMap for Map {
+    fn is_opaque(&self, idx: usize) -> bool {
+        self.tiles[idx as usize] == TileType::Wall
+    }
+}
 
 pub fn draw_map(ecs: &World, ctx: &mut Rltk) {
     let map = ecs.fetch::<Map>();
+
     let mut y = 0;
     let mut x = 0;
-    for tile in map.tiles.iter() {
+    for (i, tile) in map.tiles.iter().enumerate() {
         // Render a tile depending on type
-        match tile {
-            TileType::Floor => {
-                ctx.set(
-                    x,
-                    y,
-                    RGB::from_f32(0.5, 0.5, 0.5),
-                    RGB::from_f32(0., 0., 0.),
-                    rltk::to_cp437('.'),
-                );
-            }
-            TileType::Wall => {
-                ctx.set(
-                    x,
-                    y,
-                    RGB::from_f32(0.0, 1.0, 0.0),
-                    RGB::from_f32(0., 0., 0.),
-                    rltk::to_cp437('#'),
-                );
+        if map.revealed_tiles[i] == true {
+            match tile {
+                TileType::Floor => {
+                    ctx.set(
+                        x,
+                        y,
+                        RGB::from_f32(0.5, 0.5, 0.5),
+                        RGB::from_f32(0., 0., 0.),
+                        rltk::to_cp437('.'),
+                    );
+                }
+                TileType::Wall => {
+                    ctx.set(
+                        x,
+                        y,
+                        RGB::from_f32(0.0, 1.0, 0.0),
+                        RGB::from_f32(0., 0., 0.),
+                        rltk::to_cp437('#'),
+                    );
+                }
             }
         }
 
