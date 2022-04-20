@@ -23,20 +23,16 @@ impl<'a> System<'a> for MonsterAI {
         {
             if viewshed.visible_tiles.contains(&*player_pos) {
                 console::log(&format!("{} shouts insults!", name.name));
-                println!("{}, {}", pos.x, pos.y);
-                println!("{}, {}", player_pos.x, player_pos.y);
 
                 let path = rltk::a_star_search(
                     map.xy_idx(pos.x, pos.y) as i32,
                     map.xy_idx(player_pos.x, player_pos.y) as i32,
                     &mut *map,
                 );
-                println!("{}, {}", path.success, path.steps.len());
 
                 if path.success && path.steps.len() > 1 {
                     pos.x = path.steps[1] as i32 % map.width;
                     pos.y = path.steps[1] as i32 / map.width;
-                    println!("New pos: {}, {}", pos.x, pos.y);
                     viewshed.dirty = true;
                 }
             }

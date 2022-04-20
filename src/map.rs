@@ -125,10 +125,6 @@ impl BaseMap for Map {
         let w = self.width as usize;
         let p1 = Point::new(idx1 % w, idx1 / w);
         let p2 = Point::new(idx2 % w, idx2 / w);
-        println!(
-            "Pathing distance: {}",
-            rltk::DistanceAlg::Pythagoras.distance2d(p1, p2)
-        );
         rltk::DistanceAlg::Pythagoras.distance2d(p1, p2)
     }
 
