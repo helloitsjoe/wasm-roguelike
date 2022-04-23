@@ -1,4 +1,6 @@
-use super::{CombatStats, Map, Player, Position, RunState, State, TileType, Viewshed};
+use super::{
+    CombatStats, Map, Player, Position, RunState, State, TileType, Viewshed, WantsToMelee,
+};
 use rltk::{console, Point, Rltk, VirtualKeyCode};
 use specs::prelude::*;
 use std::cmp::{max, min};
@@ -13,9 +15,15 @@ pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
     let map = ecs.fetch::<Map>();
 
     for (entity, _player, pos, viewshed) in
-        (entities, players, &mut positions, &mut viewsheds).join()
+        (&entities, &players, &mut positions, &mut viewsheds).join()
     {
-        if pos.x + delta_x < 1 || pos.x. + delta_x > map.width - 1 || pos.y + delta_y < 1 || pos.y + delta_y > map.height - 1 { return; }
+        if pos.x + delta_x < 1
+            || pos.y + delta_y < 1
+            || pos.x + delta_x > map.width - 1
+            || pos.y + delta_y > map.height - 1
+        {
+            return;
+        }
         let destination_idx = map.xy_idx(pos.x + delta_x, pos.y + delta_y);
 
         for potential_target in map.tile_content[destination_idx].iter() {
@@ -23,6 +31,14 @@ pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
             match target {
                 None => {}
                 Some(_) => {
+                    wants_to_melee
+                        .insert(
+                            entity,
+                            WantsToMelee {
+                                target: *potential_target,
+                            },
+                        )
+                        .expect("Add target failed!");
                     console::log(&format!("From Hell's Heart, I stab thee!"));
                     return;
                 }
