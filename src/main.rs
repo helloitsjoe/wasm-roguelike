@@ -13,6 +13,10 @@ mod monster_ai_system;
 pub use monster_ai_system::MonsterAI;
 mod map_indexing_system;
 pub use map_indexing_system::MapIndexingSystem;
+mod melee_combat_system;
+pub use melee_combat_system::MeleeCombatSystem;
+mod damage_system;
+pub use damage_system::DamageSystem;
 mod rect;
 pub use rect::Rect;
 
@@ -35,6 +39,11 @@ impl State {
         mob.run_now(&self.ecs);
         let mut mapindex = MapIndexingSystem {};
         mapindex.run_now(&self.ecs);
+        let mut melee = MeleeCombatSystem {};
+        melee.run_now(&self.ecs);
+        let mut damage = DamageSystem {};
+        damage.run_now(&self.ecs);
+        damage_system::delete_the_dead(&mut self.ecs);
         self.ecs.maintain();
     }
 }
