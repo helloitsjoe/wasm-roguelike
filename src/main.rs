@@ -17,6 +17,10 @@ mod melee_combat_system;
 pub use melee_combat_system::MeleeCombatSystem;
 mod damage_system;
 pub use damage_system::DamageSystem;
+mod gui;
+pub use gui::*;
+mod gamelog;
+pub use gamelog::*;
 mod rect;
 pub use rect::Rect;
 
@@ -94,6 +98,8 @@ impl GameState for State {
                 ctx.set(pos.x, pos.y, render.fg, render.bg, render.glyph);
             }
         }
+
+        gui::draw_ui(&self.ecs, ctx);
     }
 }
 
@@ -197,6 +203,9 @@ fn main() -> rltk::BError {
     gs.ecs.insert(player_entity);
     gs.ecs.insert(RunState::PreRun);
     gs.ecs.insert(Point::new(player_x, player_y));
+    gs.ecs.insert(gamelog::GameLog {
+        entries: vec!["Welcome to Rusty Roguelike".to_string()],
+    });
 
     rltk::main_loop(context, gs)
 }
