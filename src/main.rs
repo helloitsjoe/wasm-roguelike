@@ -17,6 +17,8 @@ mod melee_combat_system;
 pub use melee_combat_system::MeleeCombatSystem;
 mod damage_system;
 pub use damage_system::DamageSystem;
+mod inventory_system;
+pub use inventory_system::ItemCollectionSystem;
 mod gui;
 pub use gui::*;
 mod gamelog;
@@ -50,6 +52,8 @@ impl State {
         melee.run_now(&self.ecs);
         let mut damage = DamageSystem {};
         damage.run_now(&self.ecs);
+        let mut pickup = ItemCollectionSystem {};
+        pickup.run_now(&self.ecs);
         self.ecs.maintain();
     }
 }
@@ -124,6 +128,10 @@ fn main() -> rltk::BError {
     gs.ecs.register::<CombatStats>();
     gs.ecs.register::<WantsToMelee>();
     gs.ecs.register::<SufferDamage>();
+    gs.ecs.register::<Item>();
+    gs.ecs.register::<Potion>();
+    gs.ecs.register::<InBackpack>();
+    gs.ecs.register::<WantsToPickUpItem>();
 
     gs.ecs.insert(rltk::RandomNumberGenerator::new());
 
