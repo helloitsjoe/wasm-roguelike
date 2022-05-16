@@ -145,7 +145,6 @@ fn draw_tooltips(ecs: &World, ctx: &mut Rltk) {
 pub enum ItemMenuResult {
     Cancel,
     NoResponse,
-    Selected,
 }
 
 pub fn show_inventory(gs: &mut State, ctx: &mut Rltk) -> ItemMenuResult {
@@ -218,6 +217,7 @@ pub fn show_inventory(gs: &mut State, ctx: &mut Rltk) -> ItemMenuResult {
         None => ItemMenuResult::NoResponse,
         Some(key) => match key {
             VirtualKeyCode::Escape => ItemMenuResult::Cancel,
+            VirtualKeyCode::I => ItemMenuResult::Cancel,
             _ => ItemMenuResult::NoResponse,
         },
     }

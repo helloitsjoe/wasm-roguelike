@@ -1,4 +1,4 @@
-use rltk::{GameState, Point, Rltk, RGB};
+use rltk::{GameState, Point, Rltk};
 use specs::prelude::*;
 
 mod components;
@@ -7,6 +7,8 @@ mod map;
 pub use map::*;
 mod player;
 pub use player::*;
+mod rect;
+pub use rect::Rect;
 mod visibility_system;
 pub use visibility_system::VisibilitySystem;
 mod monster_ai_system;
@@ -17,16 +19,12 @@ mod melee_combat_system;
 pub use melee_combat_system::MeleeCombatSystem;
 mod damage_system;
 pub use damage_system::DamageSystem;
-mod inventory_system;
-pub use inventory_system::ItemCollectionSystem;
-mod gui;
-pub use gui::*;
 mod gamelog;
-pub use gamelog::*;
+pub use gamelog::GameLog;
+mod gui;
+mod inventory_system;
 mod spawner;
-pub use spawner::*;
-mod rect;
-pub use rect::Rect;
+pub use inventory_system::ItemCollectionSystem;
 
 #[derive(PartialEq, Clone, Copy)]
 pub enum RunState {
@@ -55,6 +53,7 @@ impl State {
         damage.run_now(&self.ecs);
         let mut pickup = ItemCollectionSystem {};
         pickup.run_now(&self.ecs);
+
         self.ecs.maintain();
     }
 }
@@ -62,6 +61,24 @@ impl State {
 impl GameState for State {
     fn tick(&mut self, ctx: &mut Rltk) {
         ctx.cls();
+
+        draw_map(&self.ecs, ctx);
+
+        {
+            let positions = self.ecs.read_storage::<Position>();
+            let renderables = self.ecs.read_storage::<Renderable>();
+            let map = self.ecs.fetch::<Map>();
+
+            for (pos, render) in (&positions, &renderables).join() {
+                let idx = map.xy_idx(pos.x, pos.y);
+                if map.visible_tiles[idx] {
+                    ctx.set(pos.x, pos.y, render.fg, render.bg, render.glyph);
+                }
+            }
+
+            gui::draw_ui(&self.ecs, ctx);
+        }
+
         let mut newrunstate;
         {
             let runstate = self.ecs.fetch::<RunState>();
@@ -97,21 +114,6 @@ impl GameState for State {
         }
 
         damage_system::delete_the_dead(&mut self.ecs);
-
-        draw_map(&self.ecs, ctx);
-
-        let positions = self.ecs.read_storage::<Position>();
-        let renderables = self.ecs.read_storage::<Renderable>();
-        let map = self.ecs.fetch::<Map>();
-
-        for (pos, render) in (&positions, &renderables).join() {
-            let idx = map.xy_idx(pos.x, pos.y);
-            if map.visible_tiles[idx] {
-                ctx.set(pos.x, pos.y, render.fg, render.bg, render.glyph);
-            }
-        }
-
-        gui::draw_ui(&self.ecs, ctx);
     }
 }
 
