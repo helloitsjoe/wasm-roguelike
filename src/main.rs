@@ -24,7 +24,7 @@ pub use gamelog::GameLog;
 mod gui;
 mod inventory_system;
 mod spawner;
-pub use inventory_system::ItemCollectionSystem;
+pub use inventory_system::{ItemCollectionSystem, PotionUseSystem};
 
 #[derive(PartialEq, Clone, Copy)]
 pub enum RunState {
@@ -53,6 +53,8 @@ impl State {
         damage.run_now(&self.ecs);
         let mut pickup = ItemCollectionSystem {};
         pickup.run_now(&self.ecs);
+        let mut potions = PotionUseSystem {};
+        potions.run_now(&self.ecs);
 
         self.ecs.maintain();
     }
@@ -152,6 +154,7 @@ fn main() -> rltk::BError {
     gs.ecs.register::<Potion>();
     gs.ecs.register::<InBackpack>();
     gs.ecs.register::<WantsToPickUpItem>();
+    gs.ecs.register::<WantsToDrinkPotion>();
 
     gs.ecs.insert(rltk::RandomNumberGenerator::new());
 
